@@ -19,7 +19,8 @@ func Execute(){
     case "-h", "--help":
         showHelp()
     case "-V", "--version":
-        showVersion()
+		showVersion()
+        
 	default:
 		fmt.Println("Unknown command: '", os.Args[1], "'");
 		showHelp()

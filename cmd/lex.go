@@ -7,18 +7,15 @@ import (
 )
 
 func lexCommand(){
-	const klangVersion = "v0.1.10"
-	const cliVersion = "v0.1.0"
-
 	if len(os.Args) < 3{
 		fmt.Println("Usage: loom lex <.k file>")
 		return
 	}
 
-	fmt.Println("╭────────────────────────────────────────────────────────╮")
-	fmt.Println("│  loom — Klang Project Manager                          │")
-	fmt.Printf("│  version %s-dev  •  Klang Core %s             │\n", cliVersion, klangVersion)
-	fmt.Println("╰────────────────────────────────────────────────────────╯")
+	
+	log := NewLog()
+
+	log.Header()
 	fmt.Println()
 
 	file := os.Args[2]
@@ -33,8 +30,8 @@ func lexCommand(){
 		sufixo := file[indexOfDot:]
 
 		fmt.Println("Erro: Not a .k file")
-		fmt.Println("────────────────────────────────────────────────────────")
-
+		log.Line()
+		
 		fmt.Println("File: ", file, " is a ", sufixo, " file")
 		fmt.Println("did you provide the wrong file?")
 		
@@ -48,23 +45,20 @@ func lexCommand(){
 		return
 	}
 
-
-
-
 	fmt.Println("loom lex ", file)
-	fmt.Println("────────────────────────────────────────────────────────")
+	log.Line()
 
 	fmt.Println("Running lexer in (simulation)...")
 	fmt.Println("\n✔ ", file, " successfully lexicalized!")
 
 	fmt.Println("Conteúdo de ", file, " (primeiros 50 bytes):")
-	fmt.Println("────────────────────────────────────────────────────────")
+	log.Line()
 	fmt.Println(string(data[:50])) 
 
 	fmt.Println()
 
 	fmt.Println("Tokens:")
-	fmt.Println("────────────────────────────────────────────────────────")
+	log.Line()
 	fmt.Println("Tokens here...")
 
 }

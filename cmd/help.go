@@ -4,18 +4,14 @@ import (
 	"fmt"
 )
 
-func showHelp() {
-	const klangVersion = "v0.1.10"
-	const cliVersion = "v0.1.0"
+func showHelp() {	
+	log := NewLog()
 
-	fmt.Println("╭────────────────────────────────────────────────────────╮")
-	fmt.Println("│  loom — Klang Project Manager                          │")
-	fmt.Printf("│  version %s-dev  •  Klang Core %s             │\n", cliVersion, klangVersion)
-	fmt.Println("╰────────────────────────────────────────────────────────╯")
+	log.Header()
 	fmt.Println()
 
 	fmt.Println("loom --help")
-	fmt.Println("────────────────────────────────────────────────────────")
+	log.Line()
 	fmt.Println()
 
 	fmt.Println("Commands")
@@ -31,7 +27,7 @@ func showHelp() {
 	fmt.Println()
 
 	fmt.Println("Versions")
-	fmt.Printf("	loom: 				%s-dev\n", cliVersion)
-	fmt.Printf("	Klang core: 			%s-dev\n", klangVersion)
+	fmt.Printf("	loom: 				%s-dev\n", log.LoomVersion)
+	fmt.Printf("	Klang core: 			%s-dev\n", log.KlangVersion)
 
 }

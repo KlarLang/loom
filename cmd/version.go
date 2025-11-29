@@ -7,16 +7,15 @@ import (
 
 
 func showVersion(){
-	const cliVersion = "v0.1.0"
-	const klangVersion = "v0.1.10"
+	log := NewLog()
 
-	if len(os.Args) > 3 {
-		if os.Args[2] == "--short"{
+	if len(os.Args) - 1 >= 2 {
+		if os.Args[2] == "--short" || os.Args[2] == "-st"{
 			fmt.Println("loom --version")
-			fmt.Println("────────────────────────────────────────────────────────")
+			log.Line()
 
-			fmt.Printf("loom %s-dev\n", cliVersion)
-			fmt.Printf("Klang core %s-dev\n", klangVersion)
+			fmt.Printf("loom %s-dev\n", log.LoomVersion)
+			fmt.Printf("Klang core %s-dev\n", log.KlangVersion)
 			return
 		} 
 		
@@ -26,10 +25,10 @@ func showVersion(){
 	}
 
 	fmt.Println("loom --version")
-	fmt.Println("────────────────────────────────────────────────────────")
-	fmt.Printf("loom %s-dev\n", cliVersion)
-	fmt.Printf("Klang core %s-dev\n", klangVersion)
+	log.Line()
+	fmt.Printf("loom %s-dev\n", log.LoomVersion)
+	fmt.Printf("Klang core %s-dev\n", log.KlangVersion)
 	fmt.Println("Target: JVM", )
 	fmt.Println("Build: debug")
-	fmt.Println("────────────────────────────────────────────────────────")
+	log.Line()
 }
