@@ -45,3 +45,5 @@ Thumbs.db
 loom
 # Added by goreleaser init:
 dist/
+
+.workflow.txt
