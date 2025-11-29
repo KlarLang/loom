@@ -2,17 +2,22 @@
 
 set -e 
 
+CUSTOM_COLOR='\033[38;2;127;0;31m' 
+NORMAL='\033[0m'
+
 show_help() { 
     echo "K - CLI" 
     echo 
     echo "Usage:" 
-    echo " k <command> [options]" 
+    echo -e "${CUSTOM_COLOR}k${NORMAL} <command> [options]" 
     echo 
     echo "Commands:" 
-    echo "version Show version" 
-    echo "update Update the language" 
-    echo "run Run a file" 
-    echo "lex Lexicalizes a file" 
+    echo -e "${CUSTOM_COLOR}update${NORMAL}    | ${CUSTOM_COLOR}u${NORMAL}    ->   Update the language" 
+    echo -e "${CUSTOM_COLOR}lex${NORMAL}       | ${CUSTOM_COLOR}l${NORMAL}    ->   Lexicalizes a file" 
+    echo 
+    echo "Others:"
+    echo -e "${CUSTOM_COLOR}--help${NORMAL}    | ${CUSTOM_COLOR}-h${NORMAL}   ->   Show this help log"
+    echo -e "${CUSTOM_COLOR}--version${NORMAL} | ${CUSTOM_COLOR}-V${NORMAL}   ->   Show version" 
     echo 
 } 
 
@@ -26,17 +31,21 @@ cmd="$1"
 shift 
 
 case "$cmd" in 
-    version) 
-        echo "K CLI -> v0.1.0" 
+    --help | -h)
+        show_help 
+    ;;
+
+    --version | -V) 
+        echo "K CLI -> v0.1.1" 
         echo "Klang -> v0.1.10" 
     ;; 
 
-    update) 
+    update | u) 
         echo "Running update..." 
         # here enter your code later 
     ;; 
 
-    lex) 
+    lex | l) 
         file="$1" 
         if [ -z "$file" ]; then 
             echo "Error: You need to provide a file" 
