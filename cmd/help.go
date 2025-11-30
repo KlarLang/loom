@@ -13,6 +13,7 @@ func showHelp() {
 	fmt.Printf("%sCommands%s\n", log.PRIMARY_COLOR, log.RESET_COLOR)
 	fmt.Printf("  %snew%s   <project>     Create a new Klang project\n", log.PRIMARY_COLOR, log.RESET_COLOR)
 	fmt.Printf("  %slex%s   <file.k>      Lexicalize a Klang file\n", log.PRIMARY_COLOR, log.RESET_COLOR)
+	fmt.Printf("  %supdate%s	      Update loom (and in the future Klang)\n", log.PRIMARY_COLOR, log.RESET_COLOR)
 	
 	fmt.Println()
 	

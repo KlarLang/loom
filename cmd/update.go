@@ -7,30 +7,43 @@ import (
 )
 
 func updateCommand() {
-	// URL oficial do updater
-	updaterURL := "https://raw.githubusercontent.com/KlangLang/loom/main/helpers/update.sh"
-	tmpFile := "/tmp/loom_update.sh"
+	updaterURL := "https://raw.githubusercontent.com/KlangLang/loom/main/cmd/helpers/update.sh"
 	l := NewLog()
+	
+	tmpDir, err := os.MkdirTemp("", "loom-update-*")
+	if err != nil {
+		fmt.Printf("%s✖%s Failed to create temp directory: %v\n", l.ERROR_COLOR, l.RESET_COLOR, err)
+		return
+	}
+	defer os.RemoveAll(tmpDir)
+	
+	tmpFile := tmpDir + "/update.sh"
 
-	// Baixa o updater
-	curl := exec.Command("curl", "-sL", updaterURL, "-o", tmpFile)
+	curl := exec.Command("curl", "-sL", "-f", "--max-time", "10", updaterURL, "-o", tmpFile)
 	if err := curl.Run(); err != nil {
-		fmt.Printf("%s✖%s Failed to download update script: %v", l.PRIMARY_COLOR, l.RESET_COLOR, err)
+		fmt.Printf("%s✖%s Failed to download update script: %v\n", l.ERROR_COLOR, l.RESET_COLOR, err)
+		return
 	}
 
-	// Torna executável
+	fileInfo, err := os.Stat(tmpFile)
+	if err != nil || fileInfo.Size() == 0 {
+		fmt.Printf("%s✖%s Downloaded file is empty or missing\n", l.ERROR_COLOR, l.RESET_COLOR)
+		return
+	}
+
 	if err := os.Chmod(tmpFile, 0755); err != nil {
-		fmt.Printf("%s✖%s Failed to chmod update script: %v", l.PRIMARY_COLOR, l.RESET_COLOR, err)
+		fmt.Printf("%s✖%s Failed to chmod update script: %v\n", l.ERROR_COLOR, l.RESET_COLOR, err)
+		return
 	}
 
-	// Executa
 	cmd := exec.Command("bash", tmpFile)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 
 	if err := cmd.Run(); err != nil {
-		fmt.Printf("%s✖%s Update failed: %v", l.PRIMARY_COLOR, l.RESET_COLOR, err)
+		fmt.Printf("%s✖%s Update failed: %v\n", l.ERROR_COLOR, l.RESET_COLOR, err)
+		return
 	}
 
-	fmt.Printf("%s✔%s Loom updated successfully!\n", l.PRIMARY_COLOR, l.RESET_COLOR)
+	fmt.Printf("%s✔%s Loom updated successfully!\n", l.SUCESS_COLOR, l.RESET_COLOR)
 }
