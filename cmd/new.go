@@ -151,12 +151,10 @@ func newCommand() {
 	fmt.Println()
 
 	defaultBackend := selectDefaultBackend(backends, log)
-	fmt.Printf("%s◉%s Default backend set to: %s\n", 
-		log.PRIMARY_COLOR, log.RESET_COLOR, defaultBackend)
+	fmt.Printf("%s◉%s Default backend set to: %s\n", log.PRIMARY_COLOR, log.RESET_COLOR, defaultBackend)
 	fmt.Println()
 
 	readme := question("Do you want to create a base README for " + name)
-
 	author := askAuthor(log)
 
 	fmt.Printf("%s◉%s Ok, creating project structure...\n", log.PRIMARY_COLOR, log.RESET_COLOR)
@@ -165,11 +163,8 @@ func newCommand() {
 	fmt.Printf("%s◉%s Almost there, writing manifest...\n", log.PRIMARY_COLOR, log.RESET_COLOR)
 	createManifest(name, log, readme, backends, defaultBackend, author)
 
-	fmt.Printf("%s◉%s Initializing Klang module...\n", log.PRIMARY_COLOR, log.RESET_COLOR)
 	fmt.Printf("%s◈%s Finalizing...\n", log.ACCENT_COLOR, log.RESET_COLOR)
-
-	fmt.Printf("\n%s✔%s Project '%s' created.\n",
-		log.SUCESS_COLOR, log.RESET_COLOR, name)
+	fmt.Printf("\n%s✔%s Project '%s' created.\n", log.SUCESS_COLOR, log.RESET_COLOR, name)
 	
 	fmt.Printf("\n%s◉%s Next steps:%s\n", log.PRIMARY_COLOR, log.RESET_COLOR, log.RESET_COLOR)
 	fmt.Printf("  cd %s\n", name)
@@ -180,6 +175,7 @@ func newCommand() {
 
 func createManifest(name string, log Log, readme bool, backends map[string]BackendInfo, defaultBackend string, author string) {
 	SRC := filepath.Join(name, "src")
+	TESTS := filepath.Join(name, "tests")
 
 	backendConfig := generateBackendConfig(backends, defaultBackend)
 
@@ -194,20 +190,16 @@ default-backend = "%s"
 %s`, name, author, defaultBackend, backendConfig)
 
 	readmeContent := fmt.Sprintf(`# %s
+Project created with Loom %s — the official CLI for the Klang language. 
 
-Projeto criado com o Loom — o CLI oficial da linguagem Klang.
+## Run (not yet available)
 
-## Rodar
+kc run src/main.k 
 
-kc run src/main.k
+## Compile (not yet available)
 
-## Compilar
-
-kc build
-
-## Backends disponíveis
-
-`, name)
+kc build 
+`, name, log.LoomVersion)
 
 	for _, backend := range backends {
 		if backend.Installed {
@@ -217,7 +209,7 @@ kc build
 
 	files := []string{
 		filepath.Join(SRC, "main.k"),
-		filepath.Join(SRC, "main_test.k"),
+		filepath.Join(TESTS, "main_test.k"),
 		filepath.Join(name, "loom.toml"),
 		filepath.Join(name, "README.md"),
 	}
@@ -305,13 +297,49 @@ func question(quest string) bool {
 
 func askAuthor(log Log) string {
 	reader := bufio.NewReader(os.Stdin)
-	fmt.Printf("%s◉%s Author name [default = ~K']: ", log.PRIMARY_COLOR, log.RESET_COLOR)
+	input := "outsider"
+	qtd := 0
 
-	input, _ := reader.ReadString('\n')
-	input = strings.TrimSpace(input)
+	for true {
+		qtd++
+		fmt.Printf("%s◉%s Author name: ", log.PRIMARY_COLOR, log.RESET_COLOR)
+		
+		input, _ := reader.ReadString('\n')
+		input = strings.TrimSpace(input)
+	
+		if input == "" {
+			fmt.Printf("%s✖ Error:%s your name cannot be empty!\n", log.ERROR_COLOR, log.RESET_COLOR)
+			
+			if qtd % 5 == 0 {
+				ok := false
 
-	if input == "" {
-		return "foreigner"
+				for true {
+					fmt.Print("...Do you want to follow your nameless course? (s/n): ")
+
+					input, _ := reader.ReadString('\n')
+					input = strings.TrimSpace(input)
+	
+					if input != "" {
+						if respostasSim[input]{
+							input = "outsider"
+							ok = true
+						}
+						
+						break
+					}
+				}
+
+				if ok {
+					break
+				}
+
+				continue
+			}
+			
+			continue
+		}
+
+		break
 	}
 
 	return input
