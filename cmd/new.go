@@ -54,11 +54,11 @@ func detectBackends(log Log) map[string]BackendInfo {
 			if len(lines) > 0 {
 				backend.Version = strings.TrimSpace(lines[0])
 			}
-			fmt.Printf("  %s✔%s %s detected: %s\n", 
+			fmt.Printf("  %s✔%s %s detected: %s\n",
 				log.SUCESS_COLOR, log.RESET_COLOR, backend.Name, backend.Version)
 		} else {
 			backend.Installed = false
-			fmt.Printf("  %s✖%s %s not found\n", 
+			fmt.Printf("  %s✖%s %s not found\n",
 				log.ERROR_COLOR, log.RESET_COLOR, backend.Name)
 		}
 
@@ -70,7 +70,7 @@ func detectBackends(log Log) map[string]BackendInfo {
 
 func selectDefaultBackend(backends map[string]BackendInfo, log Log) string {
 	installedBackends := []string{}
-	
+
 	for key, backend := range backends {
 		if backend.Installed {
 			installedBackends = append(installedBackends, key)
@@ -78,20 +78,20 @@ func selectDefaultBackend(backends map[string]BackendInfo, log Log) string {
 	}
 
 	if len(installedBackends) == 0 {
-		fmt.Printf("\n%s⚠ Warning:%s No backends detected. Using Java as default.\n", 
+		fmt.Printf("\n%s⚠ Warning:%s No backends detected. Using Java as default.\n",
 			log.WARNING_COLOR, log.RESET_COLOR)
 		return "java"
 	}
 
 	if len(installedBackends) == 1 {
-		fmt.Printf("\n%s◉%s Only one backend found, using %s as default.\n", 
+		fmt.Printf("\n%s◉%s Only one backend found, using %s as default.\n",
 			log.PRIMARY_COLOR, log.RESET_COLOR, installedBackends[0])
 		return installedBackends[0]
 	}
 
-	fmt.Printf("\n%s◉%s Multiple backends available. Choose default:\n", 
+	fmt.Printf("\n%s◉%s Multiple backends available. Choose default:\n",
 		log.PRIMARY_COLOR, log.RESET_COLOR)
-	
+
 	for i, backend := range installedBackends {
 		fmt.Printf("  %s[%d]%s %s\n", log.ACCENT_COLOR, i+1, log.RESET_COLOR, backends[backend].Name)
 	}
@@ -117,15 +117,15 @@ func selectDefaultBackend(backends map[string]BackendInfo, log Log) string {
 
 func generateBackendConfig(backends map[string]BackendInfo, defaultBackend string) string {
 	config := "[targets]\n"
-	
+
 	order := []string{"java", "c", "cpp", "python", "rust", "go", "node"}
-	
+
 	for _, key := range order {
 		backend, exists := backends[key]
 		if !exists {
 			continue
 		}
-		
+
 		padding := strings.Repeat(" ", 7-len(key))
 		config += fmt.Sprintf("%s%s = %v\n", key, padding, backend.Installed)
 	}
@@ -165,11 +165,11 @@ func newCommand() {
 
 	fmt.Printf("%s◈%s Finalizing...\n", log.ACCENT_COLOR, log.RESET_COLOR)
 	fmt.Printf("\n%s✔%s Project '%s' created.\n", log.SUCESS_COLOR, log.RESET_COLOR, name)
-	
+
 	fmt.Printf("\n%s◉%s Next steps:%s\n", log.PRIMARY_COLOR, log.RESET_COLOR, log.RESET_COLOR)
 	fmt.Printf("  cd %s\n", name)
 	fmt.Printf("  kc run src/main.k\n")
-	
+
 	log.Line()
 }
 
@@ -215,7 +215,7 @@ kc build
 	}
 
 	filesContents := [][]byte{
-		[]byte("@Use(\"" + defaultBackend + "\")\npublic static void main(String[] args){\n\tprintln(\"Hello from Klang!\");\n}"),
+		[]byte("@Use(\"" + defaultBackend + "\")\npublic void main(){\n\tprintln(\"Hello from Klang!\");\n\treturn;\n}"),
 		[]byte("test \"project boots\" {\n\tassert(true);\n}"),
 		[]byte(tomlContent),
 		[]byte(readmeContent),
@@ -280,7 +280,7 @@ var respostasSim = map[string]bool{
 	// Other languages...
 	"oui": true, "ja": true, "da": true, "はい": true, "hai": true,
 	"是": true, "네": true, "tak": true, "ano": true, "evet": true,
-	
+
 	// Universals
 	"1": true, "true": true, "+": true, "✓": true, "✔": true,
 }
@@ -303,14 +303,14 @@ func askAuthor(log Log) string {
 	for true {
 		qtd++
 		fmt.Printf("%s◉%s Author name: ", log.PRIMARY_COLOR, log.RESET_COLOR)
-		
+
 		input, _ := reader.ReadString('\n')
 		input = strings.TrimSpace(input)
-	
+
 		if input == "" {
 			fmt.Printf("%s✖ Error:%s your name cannot be empty!\n", log.ERROR_COLOR, log.RESET_COLOR)
-			
-			if qtd % 5 == 0 {
+
+			if qtd%5 == 0 {
 				ok := false
 
 				for true {
@@ -318,13 +318,13 @@ func askAuthor(log Log) string {
 
 					input, _ := reader.ReadString('\n')
 					input = strings.TrimSpace(input)
-	
+
 					if input != "" {
-						if respostasSim[input]{
+						if respostasSim[input] {
 							input = "outsider"
 							ok = true
 						}
-						
+
 						break
 					}
 				}
@@ -335,7 +335,7 @@ func askAuthor(log Log) string {
 
 				continue
 			}
-			
+
 			continue
 		}
 
