@@ -9,6 +9,7 @@ import (
 	"os"
 	"os/user"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"time"
 )
@@ -16,8 +17,8 @@ import (
 const klangBinSubstr = ".klang/bin"
 
 func installCommand() {
-	// Verifica se está rodando com sudo
-	if os.Geteuid() == 0 {
+	// Verifica se está rodando com sudo (apenas Unix)
+	if runtime.GOOS != "windows" && os.Geteuid() == 0 {
 		fmt.Println("❌ ERROR: Do not run 'loom install' with sudo or su!")
 		fmt.Println("   This will install Klang in the root user's home directory.")
 		fmt.Println("   Run without sudo:")
@@ -38,13 +39,6 @@ func installCommand() {
 			fmt.Printf("Warning: loom does not support %s yet. Installing klang only.\n", item)
 		}
 	}
-
-	shellConfigPath, err := determineShellConfigPath()
-	if err != nil {
-		fmt.Printf("Error: Could not determine shell config file: %v\n", err)
-		return
-	}
-	fmt.Printf("Shell determined. Editing file: %s\n", shellConfigPath)
 
 	currentUser, err := user.Current()
 	if err != nil {
@@ -69,31 +63,17 @@ func installCommand() {
 		}
 	}
 
-	kcPath := filepath.Join(klangBasePath, "bin", "kc")
 	klangJarFullPath := filepath.Join(klangBasePath, "active", "klang.jar")
 
-	// Script com caminho absoluto (sem ~)
-	kcContent := []byte(fmt.Sprintf("#!/bin/sh\njava -jar \"%s\" \"$@\"", klangJarFullPath))
-
-	if err = makeFile(kcContent, kcPath); err != nil {
+	// Cria script apropriado para o OS
+	if err := createExecutableScript(klangBasePath, klangJarFullPath); err != nil {
+		fmt.Printf("Error creating executable script: %v\n", err)
 		return
 	}
 
-	os.Chmod(kcPath, 0755)
-
-	expandedConfigPath := strings.Replace(shellConfigPath, "~", homeUserPath, 1)
-
-	// PATH com caminho absoluto (sem ~)
-	klangBinPath := filepath.Join(klangBasePath, "bin")
-	klangBinPathLine := fmt.Sprintf("export PATH=\"%s:$PATH\"", klangBinPath)
-
-	if found, err := fileContains(expandedConfigPath, klangBinSubstr); err == nil && !found {
-		if err := appendLine(expandedConfigPath, klangBinPathLine); err != nil {
-			fmt.Printf("Warning: Failed to add PATH to shell config file: %v\n", err)
-		} else {
-			fmt.Println("\nAdded ~/.klang/bin to your PATH. Restart your terminal or run:")
-			fmt.Printf("  source %s\n", shellConfigPath)
-		}
+	// Adiciona ao PATH (diferente para Windows e Unix)
+	if err := addToPath(klangBasePath, homeUserPath); err != nil {
+		fmt.Printf("Warning: %v\n", err)
 	}
 
 	klangJarUrl, err := getLatestKlangJarURL()
@@ -114,11 +94,96 @@ func installCommand() {
 	fmt.Println("Download complete!")
 	fmt.Println("\n=============================================")
 	fmt.Println("Klang installed successfully!")
-	fmt.Println("Restart your terminal or run:")
-	fmt.Printf("  source %s\n", shellConfigPath)
+	
+	if runtime.GOOS == "windows" {
+		fmt.Println("Restart your terminal or add to PATH manually:")
+		fmt.Printf("  %s\\bin\n", klangBasePath)
+	} else {
+		shellConfigPath, _ := determineShellConfigPath()
+		fmt.Println("Restart your terminal or run:")
+		fmt.Printf("  source %s\n", shellConfigPath)
+	}
+	
 	fmt.Println("Then verify installation with:")
 	fmt.Println("  kc --version")
 	fmt.Println("=============================================")
+}
+
+func createExecutableScript(klangBasePath, klangJarFullPath string) error {
+	if runtime.GOOS == "windows" {
+		// Windows: cria .bat
+		kcPath := filepath.Join(klangBasePath, "bin", "kc.bat")
+		kcContent := []byte(fmt.Sprintf("@echo off\r\njava -jar \"%s\" %%*", klangJarFullPath))
+		return makeFile(kcContent, kcPath)
+	} else {
+		// Unix: cria script shell
+		kcPath := filepath.Join(klangBasePath, "bin", "kc")
+		kcContent := []byte(fmt.Sprintf("#!/bin/sh\njava -jar \"%s\" \"$@\"", klangJarFullPath))
+		if err := makeFile(kcContent, kcPath); err != nil {
+			return err
+		}
+		return os.Chmod(kcPath, 0755)
+	}
+}
+
+func addToPath(klangBasePath, homeUserPath string) error {
+	if runtime.GOOS == "windows" {
+		return addToPathWindows(klangBasePath)
+	}
+	return addToPathUnix(klangBasePath, homeUserPath)
+}
+
+func addToPathWindows(klangBasePath string) error {
+	klangBinPath := filepath.Join(klangBasePath, "bin")
+	
+	fmt.Println("\n⚠️  Windows detected: You need to add to PATH manually:")
+	fmt.Println("1. Press Win + X and select 'System'")
+	fmt.Println("2. Click 'Advanced system settings'")
+	fmt.Println("3. Click 'Environment Variables'")
+	fmt.Println("4. Under 'User variables', select 'Path' and click 'Edit'")
+	fmt.Println("5. Click 'New' and add:")
+	fmt.Printf("   %s\n", klangBinPath)
+	fmt.Println("6. Click 'OK' on all dialogs")
+	
+	// Alternativamente, poderia criar um script PowerShell para o usuário executar
+	psScriptPath := filepath.Join(klangBasePath, "add-to-path.ps1")
+	psContent := fmt.Sprintf(`# Run this script as Administrator to add Klang to PATH
+$klangBinPath = "%s"
+$currentPath = [Environment]::GetEnvironmentVariable("Path", "User")
+if ($currentPath -notlike "*$klangBinPath*") {
+    [Environment]::SetEnvironmentVariable("Path", "$currentPath;$klangBinPath", "User")
+    Write-Host "Added to PATH successfully!"
+} else {
+    Write-Host "Already in PATH"
+}`, klangBinPath)
+	
+	if err := makeFile([]byte(psContent), psScriptPath); err == nil {
+		fmt.Printf("\nOr run this PowerShell script as Administrator:\n  %s\n", psScriptPath)
+	}
+	
+	return nil
+}
+
+func addToPathUnix(klangBasePath, homeUserPath string) error {
+	shellConfigPath, err := determineShellConfigPath()
+	if err != nil {
+		return fmt.Errorf("could not determine shell config file: %w", err)
+	}
+	
+	fmt.Printf("Shell determined. Editing file: %s\n", shellConfigPath)
+	
+	expandedConfigPath := strings.Replace(shellConfigPath, "~", homeUserPath, 1)
+	klangBinPath := filepath.Join(klangBasePath, "bin")
+	klangBinPathLine := fmt.Sprintf("export PATH=\"%s:$PATH\"", klangBinPath)
+
+	if found, err := fileContains(expandedConfigPath, klangBinSubstr); err == nil && !found {
+		if err := appendLine(expandedConfigPath, klangBinPathLine); err != nil {
+			return fmt.Errorf("failed to add PATH to shell config file: %w", err)
+		}
+		fmt.Println("\nAdded ~/.klang/bin to your PATH.")
+	}
+	
+	return nil
 }
 
 type GitHubRelease struct {

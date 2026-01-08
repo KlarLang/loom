@@ -35,14 +35,17 @@ if not exist "%FILE%" (
 
 REM ------------------------------
 REM Extract ZIP
-REM Requires Windows 10+ (tar builtin)
 REM ------------------------------
 echo Extracting...
 tar -xf "%FILE%"
 
+if errorlevel 1 (
+    echo ❌ Failed to extract %FILE%
+    exit /b 1
+)
+
 REM ------------------------------
 REM Locate loom.exe
-REM (procura dentro da pasta extraída)
 REM ------------------------------
 
 set LOOMBIN=
@@ -70,25 +73,32 @@ if not exist "%TARGET%" (
 echo Installing to %TARGET%\loom.exe
 copy /y "%LOOMBIN%" "%TARGET%\loom.exe" >nul
 
-REM ------------------------------
-REM Check PATH
-REM ------------------------------
-echo.
-echo Checking PATH...
-
-echo %PATH% | find /i "%TARGET%" >nul
 if errorlevel 1 (
-    echo ⚠ "%TARGET%" is NOT in PATH.
-    echo Add this to your PATH manually:
-    echo.
-    echo     setx PATH "%%PATH%%;%TARGET%%"
-    echo.
-) else (
-    echo ✔ PATH OK
+    echo ❌ Failed to copy loom.exe
+    exit /b 1
 )
 
+REM ------------------------------
+REM Cleanup
+REM ------------------------------
+echo Cleaning up...
+del /q "%FILE%" >nul 2>&1
+rmdir /s /q "%~dp0loom_Windows_%ARCH%" >nul 2>&1
+
+REM ------------------------------
+REM Add to PATH using PowerShell
+REM ------------------------------
 echo.
-echo ✔ Loom installed!
-echo Run: loom --version
+echo Adding to PATH...
+
+powershell -Command "$target = '%TARGET%'; $currentPath = [Environment]::GetEnvironmentVariable('Path', 'User'); if ($currentPath -notlike \"*$target*\") { [Environment]::SetEnvironmentVariable('Path', \"$currentPath;$target\", 'User'); Write-Host '✔ Added to PATH!' -ForegroundColor Green } else { Write-Host '✔ Already in PATH' -ForegroundColor Green }"
+
+echo.
+echo =============================================
+echo ✔ Loom installed successfully!
+echo.
+echo ⚠ IMPORTANT: Close this terminal and open a NEW one
+echo Then run: loom --version
+echo =============================================
 
 endlocal
