@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"os/exec"
 	"os/user"
 	"path/filepath"
 	"runtime"
@@ -94,7 +95,7 @@ func installCommand() {
 	fmt.Println("Download complete!")
 	fmt.Println("\n=============================================")
 	fmt.Println("Klang installed successfully!")
-	
+
 	if runtime.GOOS == "windows" {
 		fmt.Println("Restart your terminal or add to PATH manually:")
 		fmt.Printf("  %s\\bin\n", klangBasePath)
@@ -103,7 +104,7 @@ func installCommand() {
 		fmt.Println("Restart your terminal or run:")
 		fmt.Printf("  source %s\n", shellConfigPath)
 	}
-	
+
 	fmt.Println("Then verify installation with:")
 	fmt.Println("  kc --version")
 	fmt.Println("=============================================")
@@ -135,32 +136,39 @@ func addToPath(klangBasePath, homeUserPath string) error {
 
 func addToPathWindows(klangBasePath string) error {
 	klangBinPath := filepath.Join(klangBasePath, "bin")
-	
-	fmt.Println("\n⚠️  Windows detected: You need to add to PATH manually:")
-	fmt.Println("1. Press Win + X and select 'System'")
-	fmt.Println("2. Click 'Advanced system settings'")
-	fmt.Println("3. Click 'Environment Variables'")
-	fmt.Println("4. Under 'User variables', select 'Path' and click 'Edit'")
-	fmt.Println("5. Click 'New' and add:")
-	fmt.Printf("   %s\n", klangBinPath)
-	fmt.Println("6. Click 'OK' on all dialogs")
-	
-	// Alternativamente, poderia criar um script PowerShell para o usuário executar
+
+	// Cria script PowerShell
 	psScriptPath := filepath.Join(klangBasePath, "add-to-path.ps1")
-	psContent := fmt.Sprintf(`# Run this script as Administrator to add Klang to PATH
+	psContent := fmt.Sprintf(`# Add Klang to PATH
 $klangBinPath = "%s"
 $currentPath = [Environment]::GetEnvironmentVariable("Path", "User")
 if ($currentPath -notlike "*$klangBinPath*") {
     [Environment]::SetEnvironmentVariable("Path", "$currentPath;$klangBinPath", "User")
-    Write-Host "Added to PATH successfully!"
+    Write-Host "✔ Added to PATH successfully!" -ForegroundColor Green
 } else {
-    Write-Host "Already in PATH"
+    Write-Host "✔ Already in PATH" -ForegroundColor Green
 }`, klangBinPath)
-	
-	if err := makeFile([]byte(psContent), psScriptPath); err == nil {
-		fmt.Printf("\nOr run this PowerShell script as Administrator:\n  %s\n", psScriptPath)
+
+	if err := os.WriteFile(psScriptPath, []byte(psContent), 0644); err != nil {
+		return fmt.Errorf("failed to create PowerShell script: %w", err)
 	}
-	
+
+	// EXECUTA o script PowerShell automaticamente
+	fmt.Println("\nAdding to PATH...")
+	cmd := exec.Command("powershell", "-ExecutionPolicy", "Bypass", "-File", psScriptPath)
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+
+	if err := cmd.Run(); err != nil {
+		fmt.Println("\n⚠️  Failed to add to PATH automatically. You can:")
+		fmt.Println("1. Run this PowerShell script as Administrator:")
+		fmt.Printf("   %s\n", psScriptPath)
+		fmt.Println("\n2. Or add manually:")
+		fmt.Println("   Press Win + X → System → Advanced → Environment Variables")
+		fmt.Printf("   Add: %s\n", klangBinPath)
+		return nil
+	}
+
 	return nil
 }
 
@@ -169,9 +177,9 @@ func addToPathUnix(klangBasePath, homeUserPath string) error {
 	if err != nil {
 		return fmt.Errorf("could not determine shell config file: %w", err)
 	}
-	
+
 	fmt.Printf("Shell determined. Editing file: %s\n", shellConfigPath)
-	
+
 	expandedConfigPath := strings.Replace(shellConfigPath, "~", homeUserPath, 1)
 	klangBinPath := filepath.Join(klangBasePath, "bin")
 	klangBinPathLine := fmt.Sprintf("export PATH=\"%s:$PATH\"", klangBinPath)
@@ -182,7 +190,7 @@ func addToPathUnix(klangBasePath, homeUserPath string) error {
 		}
 		fmt.Println("\nAdded ~/.klang/bin to your PATH.")
 	}
-	
+
 	return nil
 }
 

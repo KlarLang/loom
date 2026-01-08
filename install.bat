@@ -42,7 +42,7 @@ if "%1"=="" (
     echo Using specified version: !VERSION!
 )
 
-set FILE=loom_Windows_%ARCH%.tar.gz
+set FILE=loom_Windows_%ARCH%.zip
 set URL=https://github.com/%REPO%/releases/download/!VERSION!/%FILE%
 
 echo Downloading: !URL!
