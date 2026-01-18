@@ -121,7 +121,7 @@ func (l Log) padCenter(text string, width int) string {
 
 func NewLog() Log {
 	return Log{
-		LoomVersion: "v0.9.2",
+		LoomVersion: "v0.9.3",
 		KlarVersion: "v0.13.0",
 
 		RESET_COLOR:   "\033[0m",

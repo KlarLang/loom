@@ -1,7 +1,7 @@
 #!/usr/bin/env sh
 set -eu
 
-REPO="KlangLang/loom"
+REPO="KlarLang/loom"
 
 VERSION=$(curl -s https://api.github.com/repos/$REPO/releases/latest \
     | grep '"tag_name"' \
