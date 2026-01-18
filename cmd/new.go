@@ -262,107 +262,29 @@ func createFoldersTree(name string, log Log) {
 }
 
 var respostasSim = map[string]bool{
-	// --- PORTUGUÊS (Variações, Gírias e Formais) ---
-	"sim": true, "s": true, "si": true, "sin": true, "sii": true, "siim": true,
-	"claro": true, "com certeza": true, "certeza": true, "sem dúvida": true,
-	"positivo": true, "afirmativo": true, "confirmo": true, "confirmado": true,
-	"verdade": true, "verdadeiro": true, "v": true,
-	"ok": true, "okay": true, "okey": true, "k": true, "kk": true,
-	"tá": true, "ta": true, "tá bom": true, "tabom": true, "tá certo": true,
-	"certo": true, "correto": true, "exato": true, "isso": true, "é isso": true,
-	"é": true, "eh": true, "aham": true, "aha": true, "humrum": true,
-	"beleza": true, "blz": true, "belê": true,
-	"pode": true, "pode ser": true, "pode crer": true,
-	"bora": true, "vamos": true, "vai": true, "manda ver": true, "demorou": true,
-	"fechou": true, "fechado": true, "combinado": true,
-	"aceito": true, "topo": true, "quero": true,
-	"uai": true, // Mineiro way
+	// Portuguese
+	"sim": true, "s": true, "si": true, "claro": true, "certeza": true,
+	"com certeza": true, "certo": true, "correto": true, "exato": true,
+	"ok": true, "aceito": true, "bora": true, "é isso": true, "isso": true,
+	"beleza": true, "positivo": true, "afirmativo": true, "confirmo": true, "pode": true,
 
-	// --- INGLÊS (Slang, Formal, Internet) ---
-	"yes": true, "y": true, "ye": true, "ya": true, "yah": true, "yeh": true,
-	"yeah": true, "yep": true, "yup": true, "yess": true, "yas": true, "yass": true,
-	"sure": true, "sure thing": true, "for sure": true,
-	"ok": true, "okay": true, "okie": true, "k": true, "kk": true, "kay": true,
-	"alright": true, "all right": true, "aight": true, "right": true, "righto": true,
-	"correct": true, "accurate": true, "positive": true, "affirmative": true,
-	"absolutely": true, "definitely": true, "certainly": true, "undoubtedly": true,
-	"indeed": true, "agreed": true, "granted": true,
-	"aye": true, "aye aye": true,
-	"roger": true, "roger that": true, "copy": true, "copy that": true,
-	"bet": true, "you bet": true, "totally": true, "totes": true,
-	"fine": true, "sounds good": true, "good": true,
-	"go": true, "go ahead": true, "proceed": true, "continue": true,
-	"enable": true, "enabled": true, "on": true, "active": true,
+	// English
+	"yes": true, "y": true, "yeah": true, "yep": true, "yup": true,
+	"sure": true, "okay": true, "right": true, "correct": true,
+	"absolutely": true, "definitely": true, "affirmative": true,
+	"aye": true, "indeed": true, "certainly": true, "roger": true,
 
-	// --- ESPANHOL (Variações Regionais) ---
-	"sí": true, "si": true, "sip": true, "síp": true,
-	"claro": true, "claro que sí": true, "claro que si": true,
-	"vale": true, "ya": true, "venga": true,
-	"bueno": true, "bue": true,
-	"correcto": true, "exacto": true, "cierto": true,
-	"por supuesto": true, "desde luego": true, "obvio": true,
-	"de acuerdo": true, "está bien": true,
-	"dale": true, "va": true, "arre": true, // México/Argentina/etc
-	"simón": true, "simon": true, // Gíria Méx
-	"okey": true, "sale": true, "listo": true,
+	// Spanish
+	"sí": true, "vale": true, "bueno": true, "por supuesto": true,
+	"desde luego": true, "correcto": true, "exacto": true,
+	"de acuerdo": true, "está bien": true, "okey": true, "dale": true, "va": true,
 
-	// --- FRANCÊS ---
-	"oui": true, "ouais": true, "ouaip": true,
-	"d'accord": true, "dac": true, "ok": true,
-	"bien sur": true, "bien sûr": true, "absolument": true,
-	"exact": true, "effectivement": true, "certes": true,
-	"c'est ça": true, "entendu": true, "allez": true, "vas-y": true,
+	// Other languages...
+	"oui": true, "ja": true, "da": true, "はい": true, "hai": true,
+	"是": true, "네": true, "tak": true, "ano": true, "evet": true,
 
-	// --- ALEMÃO ---
-	"ja": true, "jo": true, "jep": true, "jupp": true,
-	"sicher": true, "sicherlich": true, "klar": true, "alles klar": true,
-	"genau": true, "stimmt": true, "richtig": true,
-	"einverstanden": true, "ok": true, "okay": true,
-
-	// --- ITALIANO ---
-	"sì": true, "si": true, "già": true,
-	"certo": true, "certamente": true, "sicuro": true,
-	"va bene": true, "vabene": true, "ok": true, "d'accordo": true,
-	"giusto": true, "esatto": true, "perfetto": true,
-
-	// --- OUTRAS LÍNGUAS (Principais e Representativas) ---
-	// Russo
-	"da": true, "да": true, "konechno": true, "aga": true,
-	// Japonês (Romaji + Kanji/Kana)
-	"hai": true, "ha": true, "ee": true, "sou": true, "sou desu": true,
-	"はい": true, "ええ": true, "そうです": true,
-	// Chinês (Pinyin + Hanzi - Simplificado/Tradicional)
-	"shi": true, "dui": true, "hao": true, "xing": true, "ok": true,
-	"是": true, "是的": true, "对": true, "好": true, "行": true,
-	// Coreano
-	"ne": true, "ye": true, "ung": true, "eung": true,
-	"네": true, "예": true, "응": true,
-	// Árabe (Transliterado + Script)
-	"na'am": true, "naam": true, "aiwa": true, "yani": true, "n": true, // n muitas vezes mapeado para naam em sistemas
-	"نعم": true, "ايوه": true,
-	// Hindi
-	"haan": true, "ha": true, "ji": true, "sahi": true,
-	"हाँ": true, "जी": true,
-	// Holandês
-	"ja": true, "jawel": true, "jep": true, "oké": true,
-	// Polonês
-	"tak": true, "dobrze": true, "jasne": true,
-	// Turco
-	"evet": true, "he": true, "tamam": true, "peki": true,
-	// Sueco/Norueguês/Dinamarquês
-	"ja": true, "jo": true, "joo": true, "javisst": true,
-	// Grego
-	"ne": true, "nai": true, "ναι": true,
-	// Tcheco
-	"ano": true, "jo": true,
-
-	// --- UNIVERSAIS / TÉCNICOS / SÍMBOLOS ---
-	"1": true, "true": true, "t": true,
-	"+": true, "plus": true,
-	"✓": true, "✔": true, "☑": true,
-	"👍": true, "👌": true, "🙆": true, "🙆‍♂️": true, "🙆‍♀️": true,
-	"infinite": true, "always": true,
-	"success": true, "pass": true,
+	// Universals
+	"1": true, "true": true, "+": true, "✓": true, "✔": true,
 }
 
 func question(quest string) bool {
