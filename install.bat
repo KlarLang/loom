@@ -30,7 +30,7 @@ echo Detected -^> Windows-%ARCH%
 REM ------------------------------
 REM Get version
 REM ------------------------------
-set REPO=KlangLang/loom
+set REPO=KlarLang/loom
 
 if "%1"=="" (
     echo Fetching latest version from GitHub...

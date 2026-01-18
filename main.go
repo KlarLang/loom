@@ -1,7 +1,7 @@
 package main
 
-import "github.com/KlangLang/loom/cmd"
+import "github.com/KlarLang/loom/cmd"
 
-func main(){
+func main() {
 	cmd.Execute()
 }

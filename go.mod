@@ -1,4 +1,4 @@
-module github.com/KlangLang/loom
+module github.com/KlarLang/loom
 
 go 1.25.4
 
