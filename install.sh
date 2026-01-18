@@ -1,8 +1,8 @@
 #!/usr/bin/env sh
 set -eu
 
-REPO="KlangLang/loom"
-VERSION="${1:-v0.1.6}"
+REPO="KlarLang/loom"
+VERSION="${1:-v0.9.1}"
 
 # Detect OS/ARCH compatible with your release names
 OS="$(uname -s)"

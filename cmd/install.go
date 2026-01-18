@@ -15,13 +15,13 @@ import (
 	"time"
 )
 
-const klangBinSubstr = ".klang/bin"
+const klarBinSubstr = ".klar/bin"
 
 func installCommand() {
 	// Verifica se está rodando com sudo (apenas Unix)
 	if runtime.GOOS != "windows" && os.Geteuid() == 0 {
 		fmt.Println("❌ ERROR: Do not run 'loom install' with sudo or su!")
-		fmt.Println("   This will install Klang in the root user's home directory.")
+		fmt.Println("   This will install Klar in the root user's home directory.")
 		fmt.Println("   Run without sudo:")
 		fmt.Println("     loom install")
 		return
@@ -30,14 +30,14 @@ func installCommand() {
 	contentToInstall := []string{}
 
 	if len(os.Args) <= 2 {
-		contentToInstall = append(contentToInstall, "klang")
+		contentToInstall = append(contentToInstall, "klar")
 	} else {
 		contentToInstall = os.Args[2:]
 	}
 
 	for _, item := range contentToInstall {
-		if item != "klang" {
-			fmt.Printf("Warning: loom does not support %s yet. Installing klang only.\n", item)
+		if item != "klar" {
+			fmt.Printf("Warning: loom does not support %s yet. Installing klar only.\n", item)
 		}
 	}
 
@@ -48,13 +48,13 @@ func installCommand() {
 	}
 
 	homeUserPath := currentUser.HomeDir
-	klangBasePath := filepath.Join(homeUserPath, ".klang")
+	klarBasePath := filepath.Join(homeUserPath, ".klar")
 
 	paths := []string{
-		klangBasePath,
-		filepath.Join(klangBasePath, "bin"),
-		filepath.Join(klangBasePath, "version"),
-		filepath.Join(klangBasePath, "active"),
+		klarBasePath,
+		filepath.Join(klarBasePath, "bin"),
+		filepath.Join(klarBasePath, "version"),
+		filepath.Join(klarBasePath, "active"),
 	}
 
 	for _, path := range paths {
@@ -64,41 +64,41 @@ func installCommand() {
 		}
 	}
 
-	klangJarFullPath := filepath.Join(klangBasePath, "active", "klang.jar")
+	klarJarFullPath := filepath.Join(klarBasePath, "active", "klar.jar")
 
 	// Cria script apropriado para o OS
-	if err := createExecutableScript(klangBasePath, klangJarFullPath); err != nil {
+	if err := createExecutableScript(klarBasePath, klarJarFullPath); err != nil {
 		fmt.Printf("Error creating executable script: %v\n", err)
 		return
 	}
 
 	// Adiciona ao PATH (diferente para Windows e Unix)
-	if err := addToPath(klangBasePath, homeUserPath); err != nil {
+	if err := addToPath(klarBasePath, homeUserPath); err != nil {
 		fmt.Printf("Warning: %v\n", err)
 	}
 
-	klangJarUrl, err := getLatestKlangJarURL()
+	klarJarUrl, err := getLatestKlarJarURL()
 	if err != nil {
 		log.Fatalf("Error determining the latest download URL: %v", err)
 		return
 	}
 
-	klangJarPath := filepath.Join(paths[3], "klang.jar")
+	klarJarPath := filepath.Join(paths[3], "klar.jar")
 
-	fmt.Printf("Downloading %s to %s...\n", klangJarUrl, klangJarPath)
+	fmt.Printf("Downloading %s to %s...\n", klarJarUrl, klarJarPath)
 
-	if err := downloadFile(klangJarPath, klangJarUrl); err != nil {
+	if err := downloadFile(klarJarPath, klarJarUrl); err != nil {
 		log.Fatalf("Error downloading the file: %v", err)
 		return
 	}
 
 	fmt.Println("Download complete!")
 	fmt.Println("\n=============================================")
-	fmt.Println("Klang installed successfully!")
+	fmt.Println("Klar installed successfully!")
 
 	if runtime.GOOS == "windows" {
 		fmt.Println("Restart your terminal or add to PATH manually:")
-		fmt.Printf("  %s\\bin\n", klangBasePath)
+		fmt.Printf("  %s\\bin\n", klarBasePath)
 	} else {
 		shellConfigPath, _ := determineShellConfigPath()
 		fmt.Println("Restart your terminal or run:")
@@ -110,16 +110,16 @@ func installCommand() {
 	fmt.Println("=============================================")
 }
 
-func createExecutableScript(klangBasePath, klangJarFullPath string) error {
+func createExecutableScript(klarBasePath, klarJarFullPath string) error {
 	if runtime.GOOS == "windows" {
 		// Windows: cria .bat
-		kcPath := filepath.Join(klangBasePath, "bin", "kc.bat")
-		kcContent := []byte(fmt.Sprintf("@echo off\r\njava -jar \"%s\" %%*", klangJarFullPath))
+		kcPath := filepath.Join(klarBasePath, "bin", "kc.bat")
+		kcContent := []byte(fmt.Sprintf("@echo off\r\njava -jar \"%s\" %%*", klarJarFullPath))
 		return makeFile(kcContent, kcPath)
 	} else {
 		// Unix: cria script shell
-		kcPath := filepath.Join(klangBasePath, "bin", "kc")
-		kcContent := []byte(fmt.Sprintf("#!/bin/sh\njava -jar \"%s\" \"$@\"", klangJarFullPath))
+		kcPath := filepath.Join(klarBasePath, "bin", "kc")
+		kcContent := []byte(fmt.Sprintf("#!/bin/sh\njava -jar \"%s\" \"$@\"", klarJarFullPath))
 		if err := makeFile(kcContent, kcPath); err != nil {
 			return err
 		}
@@ -127,27 +127,27 @@ func createExecutableScript(klangBasePath, klangJarFullPath string) error {
 	}
 }
 
-func addToPath(klangBasePath, homeUserPath string) error {
+func addToPath(klarBasePath, homeUserPath string) error {
 	if runtime.GOOS == "windows" {
-		return addToPathWindows(klangBasePath)
+		return addToPathWindows(klarBasePath)
 	}
-	return addToPathUnix(klangBasePath, homeUserPath)
+	return addToPathUnix(klarBasePath, homeUserPath)
 }
 
-func addToPathWindows(klangBasePath string) error {
-	klangBinPath := filepath.Join(klangBasePath, "bin")
+func addToPathWindows(klarBasePath string) error {
+	klarBinPath := filepath.Join(klarBasePath, "bin")
 
 	// Cria script PowerShell
-	psScriptPath := filepath.Join(klangBasePath, "add-to-path.ps1")
-	psContent := fmt.Sprintf(`# Add Klang to PATH
-$klangBinPath = "%s"
+	psScriptPath := filepath.Join(klarBasePath, "add-to-path.ps1")
+	psContent := fmt.Sprintf(`# Add Klar to PATH
+$klarBinPath = "%s"
 $currentPath = [Environment]::GetEnvironmentVariable("Path", "User")
-if ($currentPath -notlike "*$klangBinPath*") {
-    [Environment]::SetEnvironmentVariable("Path", "$currentPath;$klangBinPath", "User")
+if ($currentPath -notlike "*$klarBinPath*") {
+    [Environment]::SetEnvironmentVariable("Path", "$currentPath;$klarBinPath", "User")
     Write-Host "✔ Added to PATH successfully!" -ForegroundColor Green
 } else {
     Write-Host "✔ Already in PATH" -ForegroundColor Green
-}`, klangBinPath)
+}`, klarBinPath)
 
 	if err := os.WriteFile(psScriptPath, []byte(psContent), 0644); err != nil {
 		return fmt.Errorf("failed to create PowerShell script: %w", err)
@@ -165,14 +165,14 @@ if ($currentPath -notlike "*$klangBinPath*") {
 		fmt.Printf("   %s\n", psScriptPath)
 		fmt.Println("\n2. Or add manually:")
 		fmt.Println("   Press Win + X → System → Advanced → Environment Variables")
-		fmt.Printf("   Add: %s\n", klangBinPath)
+		fmt.Printf("   Add: %s\n", klarBinPath)
 		return nil
 	}
 
 	return nil
 }
 
-func addToPathUnix(klangBasePath, homeUserPath string) error {
+func addToPathUnix(klarBasePath, homeUserPath string) error {
 	shellConfigPath, err := determineShellConfigPath()
 	if err != nil {
 		return fmt.Errorf("could not determine shell config file: %w", err)
@@ -181,14 +181,14 @@ func addToPathUnix(klangBasePath, homeUserPath string) error {
 	fmt.Printf("Shell determined. Editing file: %s\n", shellConfigPath)
 
 	expandedConfigPath := strings.Replace(shellConfigPath, "~", homeUserPath, 1)
-	klangBinPath := filepath.Join(klangBasePath, "bin")
-	klangBinPathLine := fmt.Sprintf("export PATH=\"%s:$PATH\"", klangBinPath)
+	klarBinPath := filepath.Join(klarBasePath, "bin")
+	klarBinPathLine := fmt.Sprintf("export PATH=\"%s:$PATH\"", klarBinPath)
 
-	if found, err := fileContains(expandedConfigPath, klangBinSubstr); err == nil && !found {
-		if err := appendLine(expandedConfigPath, klangBinPathLine); err != nil {
+	if found, err := fileContains(expandedConfigPath, klarBinSubstr); err == nil && !found {
+		if err := appendLine(expandedConfigPath, klarBinPathLine); err != nil {
 			return fmt.Errorf("failed to add PATH to shell config file: %w", err)
 		}
-		fmt.Println("\nAdded ~/.klang/bin to your PATH.")
+		fmt.Println("\nAdded ~/.klar/bin to your PATH.")
 	}
 
 	return nil
@@ -202,8 +202,8 @@ type GitHubRelease struct {
 	} `json:"assets"`
 }
 
-func getLatestKlangJarURL() (string, error) {
-	const apiURL = "https://api.github.com/repos/KlangLang/Klang/releases"
+func getLatestKlarJarURL() (string, error) {
+	const apiURL = "https://api.github.com/repos/KlarLang/Klar/releases"
 
 	client := &http.Client{Timeout: 10 * time.Second}
 
@@ -230,13 +230,13 @@ func getLatestKlangJarURL() (string, error) {
 	release := releases[0]
 
 	for _, asset := range release.Assets {
-		if asset.Name == "klang.jar" {
+		if asset.Name == "klar.jar" {
 			fmt.Printf("Found latest version: %s\n", release.TagName)
 			return asset.BrowserDownloadURL, nil
 		}
 	}
 
-	return "", fmt.Errorf("klang.jar not found in release %s", release.TagName)
+	return "", fmt.Errorf("klar.jar not found in release %s", release.TagName)
 }
 
 func determineShellConfigPath() (string, error) {

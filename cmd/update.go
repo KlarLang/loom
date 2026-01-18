@@ -7,16 +7,16 @@ import (
 )
 
 func updateCommand() {
-	updaterURL := "https://raw.githubusercontent.com/KlangLang/loom/main/cmd/helpers/update.sh"
+	updaterURL := "https://raw.githubusercontent.com/KlarLang/loom/main/cmd/helpers/update.sh"
 	l := NewLog()
-	
+
 	tmpDir, err := os.MkdirTemp("", "loom-update-*")
 	if err != nil {
 		fmt.Printf("%s✖%s Failed to create temp directory: %v\n", l.ERROR_COLOR, l.RESET_COLOR, err)
 		return
 	}
 	defer os.RemoveAll(tmpDir)
-	
+
 	tmpFile := tmpDir + "/update.sh"
 
 	curl := exec.Command("curl", "-sL", "-f", "--max-time", "10", updaterURL, "-o", tmpFile)

@@ -2,8 +2,7 @@ package cmd
 
 import "fmt"
 
-
-func showVersion(){
+func showVersion() {
 	log := NewLog()
 	width := log.getTerminalWidth()
 
@@ -11,16 +10,16 @@ func showVersion(){
 
 	if width < 80 {
 
-		log.newLine("			   ")		
+		log.newLine("			   ")
 		log.addNewLineToHealder(fmt.Sprintf("    %sEnv info:            %s", log.PRIMARY_COLOR, log.RESET_COLOR))
 		log.addNewLineToHealder("       Target: JVM       ")
-		log.addNewLineToHealder("       Build:  debug	   ")	
+		log.addNewLineToHealder("       Build:  debug	   ")
 		log.finalizeBottomheader()
 		return
 	}
 
 	log.addNewLineToHealder(fmt.Sprintf("                         %sEnv info:%s                                      ", log.PRIMARY_COLOR, log.RESET_COLOR))
-	log.addNewLineToHealder("                             Target: JVM                                ")							
+	log.addNewLineToHealder("                             Target: JVM                                ")
 	log.addNewLineToHealder("                             Build:  debug                              ")
 	log.finalizeBottomheader()
 }

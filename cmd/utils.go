@@ -9,8 +9,8 @@ import (
 )
 
 type Log struct {
-	LoomVersion  string
-	KlangVersion string
+	LoomVersion string
+	KlarVersion string
 
 	// Colors
 	RESET_COLOR   string
@@ -44,7 +44,7 @@ func (l Log) Header() {
 		fmt.Printf("%s│%s                          %s│%s\n", l.PRIMARY_DARK, l.RESET_COLOR, l.PRIMARY_DARK, l.RESET_COLOR)
 		fmt.Printf("%s├──────────────────────────┤%s\n", l.PRIMARY_DARK, l.RESET_COLOR)
 		fmt.Printf("%s│%s loom - %s               %s│%s\n", l.PRIMARY_DARK, l.RESET_COLOR, l.LoomVersion, l.PRIMARY_DARK, l.RESET_COLOR)
-		fmt.Printf("%s│%s Klang Project Mgr        %s│%s\n", l.PRIMARY_DARK, l.RESET_COLOR, l.PRIMARY_DARK, l.RESET_COLOR)
+		fmt.Printf("%s│%s Klar Project Mgr         %s│%s\n", l.PRIMARY_DARK, l.RESET_COLOR, l.PRIMARY_DARK, l.RESET_COLOR)
 		return
 	}
 
@@ -54,7 +54,7 @@ func (l Log) Header() {
 	fmt.Printf("%s│%s          %s##%s                                				  %s│%s\n", l.PRIMARY_DARK, l.RESET_COLOR, l.PRIMARY_LIGHT, l.RESET_COLOR, l.PRIMARY_DARK, l.RESET_COLOR)
 	fmt.Printf("%s│%s            %s##%s                              				  %s│%s\n", l.PRIMARY_DARK, l.RESET_COLOR, l.PRIMARY_LIGHT, l.RESET_COLOR, l.PRIMARY_DARK, l.RESET_COLOR)
 	fmt.Printf("%s│%s      %s##  ######%s      	   loom version %s                            %s│%s\n", l.PRIMARY_DARK, l.RESET_COLOR, l.PRIMARY_LIGHT, l.RESET_COLOR, l.LoomVersion, l.PRIMARY_DARK, l.RESET_COLOR)
-	fmt.Printf("%s│%s    %s##  ####    ##%s    	   Klang Project Manager 			  %s│%s\n", l.PRIMARY_DARK, l.RESET_COLOR, l.PRIMARY_LIGHT, l.RESET_COLOR, l.PRIMARY_DARK, l.RESET_COLOR)
+	fmt.Printf("%s│%s    %s##  ####    ##%s    	   Klar Project Manager  			  %s│%s\n", l.PRIMARY_DARK, l.RESET_COLOR, l.PRIMARY_LIGHT, l.RESET_COLOR, l.PRIMARY_DARK, l.RESET_COLOR)
 	fmt.Printf("%s│%s      %s######%s                                				  %s│%s\n", l.PRIMARY_DARK, l.RESET_COLOR, l.PRIMARY_LIGHT, l.RESET_COLOR, l.PRIMARY_DARK, l.RESET_COLOR)
 	fmt.Printf("%s│%s            %s##%s            	                     	                  %s│%s\n", l.PRIMARY_DARK, l.RESET_COLOR, l.PRIMARY_LIGHT, l.RESET_COLOR, l.PRIMARY_DARK, l.RESET_COLOR)
 	fmt.Printf("%s│%s          %s##%s                                				  %s│%s\n", l.PRIMARY_DARK, l.RESET_COLOR, l.PRIMARY_LIGHT, l.RESET_COLOR, l.PRIMARY_DARK, l.RESET_COLOR)
@@ -121,8 +121,8 @@ func (l Log) padCenter(text string, width int) string {
 
 func NewLog() Log {
 	return Log{
-		LoomVersion:  "v0.9.1",
-		KlangVersion: "v0.1.10",
+		LoomVersion: "v0.9.2",
+		KlarVersion: "v0.13.0",
 
 		RESET_COLOR:   "\033[0m",
 		PRIMARY_COLOR: "\033[38;2;127;0;31m",

@@ -2,38 +2,50 @@
 setlocal enabledelayedexpansion
 
 REM ------------------------------
-REM Detect OS e ARCH
+REM Detect ARCH (Windows 11 compatible)
 REM ------------------------------
 
-for /f "tokens=2 delims==" %%a in ('wmic os get osarchitecture /value ^| find "="') do set ARCH=%%a
+set ARCH=
 
-if "%ARCH%"=="64-bit" set ARCH=x86_64
-if "%ARCH%"=="32-bit" set ARCH=i386
-if "%ARCH%"=="ARM64-based PC" set ARCH=arm64
+REM Método 1: PROCESSOR_ARCHITECTURE
+if "%PROCESSOR_ARCHITECTURE%"=="AMD64" set ARCH=x86_64
+if "%PROCESSOR_ARCHITECTURE%"=="x86" set ARCH=i386
+if "%PROCESSOR_ARCHITECTURE%"=="ARM64" set ARCH=arm64
+
+REM Método 2: Fallback usando PowerShell se ARCH ainda estiver vazio
+if "%ARCH%"=="" (
+    for /f "delims=" %%i in ('powershell -Command "[System.Environment]::Is64BitOperatingSystem"') do set IS64BIT=%%i
+    if "!IS64BIT!"=="True" (
+        set ARCH=x86_64
+    ) else (
+        set ARCH=i386
+    )
+)
+
+REM Método 3: Último fallback
+if "%ARCH%"=="" set ARCH=x86_64
 
 echo Detected -^> Windows-%ARCH%
 
 REM ------------------------------
-REM Get latest version from GitHub API
+REM Get version
 REM ------------------------------
 set REPO=KlangLang/loom
 
 if "%1"=="" (
     echo Fetching latest version from GitHub...
     
-    REM Cria arquivo temporário para JSON
     set TMPJSON=%TEMP%\loom_releases.json
     
     curl -s "https://api.github.com/repos/%REPO%/releases/latest" -o "!TMPJSON!"
     
-    REM Extrai tag_name do JSON usando PowerShell
     for /f "delims=" %%i in ('powershell -Command "(Get-Content '!TMPJSON!' | ConvertFrom-Json).tag_name"') do set VERSION=%%i
     
-    del "!TMPJSON!"
+    del "!TMPJSON!" 2>nul
     
     if "!VERSION!"=="" (
-        echo ❌ Failed to fetch latest version, using fallback v0.1.6
-        set VERSION=v0.1.6
+        echo ❌ Failed to fetch latest version, using fallback v0.9.0
+        set VERSION=v0.9.0
     ) else (
         echo Found latest version: !VERSION!
     )
@@ -42,37 +54,44 @@ if "%1"=="" (
     echo Using specified version: !VERSION!
 )
 
-set FILE=loom_Windows_%ARCH%.zip
-set URL=https://github.com/%REPO%/releases/download/!VERSION!/%FILE%
+set FILE=loom_Windows_!ARCH!.zip
+set URL=https://github.com/!REPO!/releases/download/!VERSION!/!FILE!
 
 echo Downloading: !URL!
 
 REM ------------------------------
 REM Create temp directory
 REM ------------------------------
-set TMPDIR=%TEMP%\loom_install_%RANDOM%
-mkdir "%TMPDIR%"
+set TMPDIR=%TEMP%\loom_install_!RANDOM!
+mkdir "!TMPDIR!"
 
 REM ------------------------------
 REM Download
 REM ------------------------------
-curl -L --fail "!URL!" -o "%TMPDIR%\%FILE%"
+curl -L --fail "!URL!" -o "!TMPDIR!\!FILE!"
 
-if not exist "%TMPDIR%\%FILE%" (
-    echo ❌ Failed to download %FILE%
-    rmdir /s /q "%TMPDIR%"
+if not exist "!TMPDIR!\!FILE!" (
+    echo ❌ Failed to download !FILE!
+    echo.
+    echo Possible reasons:
+    echo - Version !VERSION! does not exist
+    echo - No release for Windows-!ARCH!
+    echo - Network error
+    echo.
+    echo Check releases at: https://github.com/!REPO!/releases
+    rmdir /s /q "!TMPDIR!"
     exit /b 1
 )
 
 REM ------------------------------
-REM Extract tar.gz
+REM Extract ZIP
 REM ------------------------------
 echo Extracting...
-tar -xzf "%TMPDIR%\%FILE%" -C "%TMPDIR%"
+tar -xf "!TMPDIR!\!FILE!" -C "!TMPDIR!"
 
 if errorlevel 1 (
-    echo ❌ Failed to extract %FILE%
-    rmdir /s /q "%TMPDIR%"
+    echo ❌ Failed to extract !FILE!
+    rmdir /s /q "!TMPDIR!"
     exit /b 1
 )
 
@@ -80,13 +99,17 @@ REM ------------------------------
 REM Locate loom.exe
 REM ------------------------------
 set LOOMBIN=
-for /r "%TMPDIR%" %%f in (loom.exe) do (
+for /f "delims=" %%f in ('dir /s /b "!TMPDIR!\loom.exe" 2^>nul') do (
     set LOOMBIN=%%f
+    goto :found
 )
+:found
 
 if "!LOOMBIN!"=="" (
     echo ❌ loom.exe not found inside archive.
-    rmdir /s /q "%TMPDIR%"
+    echo Contents:
+    dir /s /b "!TMPDIR!"
+    rmdir /s /q "!TMPDIR!"
     exit /b 1
 )
 
@@ -97,23 +120,26 @@ REM Install to %USERPROFILE%\bin
 REM ------------------------------
 set TARGET=%USERPROFILE%\bin
 
-if not exist "%TARGET%" (
-    mkdir "%TARGET%"
+if not exist "!TARGET!" (
+    mkdir "!TARGET!"
 )
 
-echo Installing to %TARGET%\loom.exe
-copy /y "!LOOMBIN!" "%TARGET%\loom.exe" >nul
+echo Installing to !TARGET!\loom.exe
+copy /y "!LOOMBIN!" "!TARGET!\loom.exe" >nul
 
 if errorlevel 1 (
     echo ❌ Failed to copy loom.exe
-    rmdir /s /q "%TMPDIR%"
+    echo Source: !LOOMBIN!
+    echo Target: !TARGET!\loom.exe
+    rmdir /s /q "!TMPDIR!"
     exit /b 1
 )
 
 REM ------------------------------
 REM Cleanup
 REM ------------------------------
-rmdir /s /q "%TMPDIR%"
+echo Cleaning up...
+rmdir /s /q "!TMPDIR!"
 
 REM ------------------------------
 REM Add to PATH
@@ -121,12 +147,16 @@ REM ------------------------------
 echo.
 echo Adding to PATH...
 
-powershell -Command "$target = '%TARGET%'; $currentPath = [Environment]::GetEnvironmentVariable('Path', 'User'); if ($currentPath -notlike \"*$target*\") { [Environment]::SetEnvironmentVariable('Path', \"$currentPath;$target\", 'User'); Write-Host '✔ Added to PATH!' -ForegroundColor Green; Write-Host '' } else { Write-Host '✔ Already in PATH' -ForegroundColor Green; Write-Host '' }"
+powershell -Command "$target = '!TARGET!'; $currentPath = [Environment]::GetEnvironmentVariable('Path', 'User'); if ($currentPath -notlike \"*$target*\") { [Environment]::SetEnvironmentVariable('Path', \"$currentPath;$target\", 'User'); Write-Host '✔ Added to PATH!' -ForegroundColor Green; Write-Host '' } else { Write-Host '✔ Already in PATH' -ForegroundColor Green; Write-Host '' }"
 
-set PATH=%PATH%;%TARGET%
+set PATH=!PATH!;!TARGET!
 
 echo.
-echo ✔ Loom !VERSION! installed!
-echo → Run: loom --version
+echo =============================================
+echo ✔ Loom !VERSION! installed successfully!
+echo.
+echo You can now run: loom --version
+echo (Or restart your terminal for system-wide access)
+echo =============================================
 
 endlocal
