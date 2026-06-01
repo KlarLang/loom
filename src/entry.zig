@@ -10,7 +10,7 @@ pub fn entry(writer: IoWriter, args: []const []const u8) !u8 {
         try writer.stdout.interface.print("  {s}\n", .{a});
         try writer.stdout.flush();
     }
-    std.debug.print("\n----\n", .{});
+    std.debug.print("\n----\n\n", .{});
 
     if (args.len == 0) {
         try helpAndVersion.help(writer);
@@ -52,6 +52,5 @@ pub fn entry(writer: IoWriter, args: []const []const u8) !u8 {
     };
 
     std.debug.print("Existe\n", .{});
-
     return 0;
 }
